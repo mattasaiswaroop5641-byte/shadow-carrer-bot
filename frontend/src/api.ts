@@ -16,14 +16,17 @@ export type ChatRequest = {
 const metaEnv = (import.meta as unknown as { env?: Record<string, string> }).env || {};
 const API_BASE = (metaEnv.VITE_API_BASE_URL || '').replace(/\/$/, '');
 
-// Direct Groq API caller for browser / Vercel
+// Direct Groq API caller with strict 3.5s timeout and CORS catch
 async function callGroqDirect(
   message: string,
   userProfile: UserProfile,
   history: Array<{ role: 'user' | 'assistant'; content: string }>
 ): Promise<string | null> {
-  const apiKey = localStorage.getItem('shadow_groq_key') || '';
+  const apiKey = (localStorage.getItem('shadow_groq_key') || '').trim();
   if (!apiKey) return null;
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 3500);
 
   try {
     const historyLines = history.slice(-6).map((h) => `${h.role}: ${h.content}`).join('\n');
@@ -46,15 +49,19 @@ async function callGroqDirect(
         ],
         temperature: 0.35,
         max_tokens: 650
-      })
+      }),
+      signal: controller.signal
     });
+
+    clearTimeout(timeoutId);
 
     if (res.ok) {
       const data = await res.json();
       return data.choices?.[0]?.message?.content || null;
     }
   } catch (e) {
-    console.warn('Direct Groq call error', e);
+    clearTimeout(timeoutId);
+    console.warn('Groq direct call timed out / blocked by CORS, using client engine');
   }
   return null;
 }
@@ -66,11 +73,11 @@ export async function sendChatMessage(
 ): Promise<ChatResponse> {
   const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
-  // 1. If running locally or API_BASE is explicitly set, try backend with a fast 3s timeout
+  // 1. If running locally or API_BASE is set, try backend
   if (isLocal || API_BASE) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3000);
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
 
       const endpoint = API_BASE ? `${API_BASE}/api/chat` : '/api/chat';
       const payload: ChatRequest = {
@@ -97,18 +104,22 @@ export async function sendChatMessage(
         return (await response.json()) as ChatResponse;
       }
     } catch (e) {
-      console.info('Backend call timed out / failed, using instant engine');
+      console.info('Backend endpoint unavailable, falling through');
     }
   }
 
-  // 2. Try calling Groq API directly from browser on Vercel
-  const directGroqAnswer = await callGroqDirect(message, userProfile, history);
-  const clientResponse = runClientSideCareerEngine(message, userProfile);
+  // 2. Try direct Groq with timeout protection
+  try {
+    const directGroqAnswer = await callGroqDirect(message, userProfile, history);
+    const clientResponse = runClientSideCareerEngine(message, userProfile);
 
-  if (directGroqAnswer) {
-    clientResponse.answer = directGroqAnswer;
-    clientResponse.source = 'groq-direct';
+    if (directGroqAnswer) {
+      clientResponse.answer = directGroqAnswer;
+      clientResponse.source = 'groq-direct';
+    }
+
+    return clientResponse;
+  } catch (err) {
+    return runClientSideCareerEngine(message, userProfile);
   }
-
-  return clientResponse;
 }
