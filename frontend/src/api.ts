@@ -11,7 +11,9 @@ export type ChatRequest = {
   wants_graph: boolean;
 };
 
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+// Safe access for Vite environment variables across all TS configurations
+const metaEnv = (import.meta as unknown as { env?: Record<string, string> }).env || {};
+const API_BASE = (metaEnv.VITE_API_BASE_URL || '').replace(/\/$/, '');
 
 export async function sendChatMessage(
   message: string,
