@@ -1,4 +1,5 @@
 import type { ChatResponse, UserProfile } from './types';
+import { runClientSideCareerEngine } from './lib/careerEngine';
 
 export type ChatRequest = {
   message: string;
@@ -11,7 +12,7 @@ export type ChatRequest = {
   wants_graph: boolean;
 };
 
-// Safe access for Vite environment variables across all TS configurations
+// Safe access for Vite environment variables
 const metaEnv = (import.meta as unknown as { env?: Record<string, string> }).env || {};
 const API_BASE = (metaEnv.VITE_API_BASE_URL || '').replace(/\/$/, '');
 
@@ -31,17 +32,24 @@ export async function sendChatMessage(
     wants_graph: true,
   };
 
-  const response = await fetch(`${API_BASE}/api/chat`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  });
+  try {
+    const endpoint = API_BASE ? `${API_BASE}/api/chat` : '/api/chat';
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
 
-  if (!response.ok) {
-    throw new Error(`Server returned error: ${response.status}`);
+    if (response.ok) {
+      return (await response.json()) as ChatResponse;
+    }
+  } catch (networkError) {
+    // If backend is not available (e.g. standalone Vercel preview), use seamless client-side intelligence
+    console.info('Backend unreachable, seamlessly executing client-side intelligence engine');
   }
 
-  return response.json() as Promise<ChatResponse>;
+  // Graceful zero-downtime client-side career matcher
+  return runClientSideCareerEngine(message, userProfile);
 }
