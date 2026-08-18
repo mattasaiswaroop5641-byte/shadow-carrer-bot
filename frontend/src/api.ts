@@ -31,12 +31,21 @@ export async function sendChatMessage(
     wants_graph: true,
   };
 
-  // 1. Try server endpoint (/api/chat works locally and on Vercel serverless)
+  const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+  // Determine active endpoint
+  let endpoint = '/api/chat';
+  if (isLocal) {
+    endpoint = 'http://127.0.0.1:3001/api/chat';
+  } else if (API_BASE) {
+    endpoint = `${API_BASE}/api/chat`;
+  }
+
+  // 1. Try server endpoint (Direct local backend or Vercel serverless)
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3500);
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
 
-    const endpoint = API_BASE ? `${API_BASE}/api/chat` : '/api/chat';
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
@@ -51,7 +60,6 @@ export async function sendChatMessage(
     if (response.ok) {
       const data = await response.json();
       if (data && data.answer) {
-        // If server only returned answer, enrich with client-side graph & checklists
         const localEnriched = runClientSideCareerEngine(message, userProfile);
         return {
           answer: data.answer,
@@ -64,7 +72,7 @@ export async function sendChatMessage(
       }
     }
   } catch (err) {
-    console.info('Server API unreachable / timed out, using instant local engine');
+    console.info('Server API unreachable, using instant local engine');
   }
 
   // 2. Guaranteed instant local reasoning engine

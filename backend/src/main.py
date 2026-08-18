@@ -13,7 +13,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -25,4 +25,4 @@ app.include_router(chat_router, prefix="/api")
 
 @app.get("/")
 def root() -> dict[str, str]:
-    return {"message": "Career Guidance Bot API is running"}
+    return {"message": "Shadow Career Finder API is running"}
