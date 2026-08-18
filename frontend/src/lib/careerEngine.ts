@@ -258,6 +258,33 @@ export function runClientSideCareerEngine(
       `To land a high-paying role as a **${profile.target_career}**, here are the core skills to master:\n` +
       whatToLearn.map(s => `- **${s}**`).join('\n') + '\n\n' +
       `What tools or coding languages do you already have experience with?`;
+  } else if (msgLower.includes('interview') || msgLower.includes('prepare') || msgLower.includes('question')) {
+    answer = `### 🎙️ Strategic Interview Mastery Blueprint\n\n` +
+      `When interviewing for top tech and analytics roles, top interviewers evaluate you across 3 critical pillars:\n\n` +
+      `1. **Problem Solving & System Design (40%)**: Focus on data structures, API trade-offs, database indexing, and scalability bottlenecks.\n` +
+      `2. **Hands-on Technical Depth (40%)**: Be ready to explain your GitHub architecture choices, testing workflows, and debugging techniques.\n` +
+      `3. **Behavioral & Leadership (20%)**: Use the **STAR Framework** (Situation, Task, Action, Result) to quantify your impact with real metrics (% latency reduced, $ ARR saved).\n\n` +
+      `💡 *Tip for Judges/Interviews*: Always articulate the business ROI of your technical decisions rather than just syntax!`;
+  } else if (msgLower.includes('switch') || msgLower.includes('transition') || msgLower.includes('non-tech') || msgLower.includes('mechanical')) {
+    answer = `### 🚀 Non-Traditional Career Transition Strategy\n\n` +
+      `Switching into tech from a different domain is about **translating domain leverage** into proof-of-work:\n\n` +
+      `1. **Map Transferable Competencies**: Problem solving, mathematical modeling, and analytical mindset.\n` +
+      `2. **Build Public Proof-of-Work**: 2 production-ready GitHub repositories with clean documentation and live deployed links beat a standard resume.\n` +
+      `3. **Core Stack to Focus First**: Python fundamentals ➔ SQL databases ➔ Modern Web/Cloud deployment.`;
+  } else if (msgLower.includes('difference') || msgLower.includes('vs') || msgLower.includes('compare')) {
+    answer = `### ⚖️ Career Track Comparison & Market Analysis\n\n` +
+      `| Metric | Software / Full Stack Developer | Data Analyst / Scientist | Cloud / DevOps Engineer |\n` +
+      `|---|---|---|---|\n` +
+      `| **Core Focus** | User interfaces, backend APIs & database logic | Data pipelines, statistics, BI dashboards & ML | Infrastructure, CI/CD pipelines & Docker/K8s |\n` +
+      `| **Entry Languages** | JavaScript/TypeScript, Python, Java | SQL, Python, Excel, Power BI | Linux, Bash, Python, AWS/Terraform |\n` +
+      `| **Market Demand** | Very High (Consistent across all startups & enterprises) | High (Critical for data-driven companies) | Critical Shortage (High compensation leverage) |`;
+  } else if (message.trim().length > 10) {
+    answer = `### 💡 Strategic Guidance on: *"${message.trim()}"*\n\n` +
+      `Here is the recommended action plan tailored to your question:\n\n` +
+      `1. **Master High-Leverage Skills**: Focus on modern production tools (Python, React/Node, SQL, Docker) rather than outdated syntax.\n` +
+      `2. **Measure Quantified Impact**: Frame all projects in terms of performance improvements, conversion uplifts, or automated hours saved.\n` +
+      `3. **Build Industry Proof**: Deploy projects live on the cloud and share clean GitHub repositories with documented architecture diagrams.\n\n` +
+      `Feel free to share your specific qualification or target role to generate a complete step-by-step milestone graph!`;
   } else {
     answer = `👋 **Welcome to Shadow Career Finder!**\n\n` +
       `Tell me your current degree, the coding languages you know, or your target role (e.g. *Full Stack Developer, QA Tester, Data Scientist*) to build your custom roadmap!`;
