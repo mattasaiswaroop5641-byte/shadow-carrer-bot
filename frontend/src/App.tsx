@@ -182,6 +182,8 @@ export default function App() {
   const [graph, setGraph] = useState<CareerGraph | null>(null);
   const [loading, setLoading] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  const [customApiKey, setCustomApiKey] = useState(() => localStorage.getItem('shadow_groq_key') || '');
 
   const streamEndRef = useRef<HTMLDivElement>(null);
 
@@ -326,6 +328,14 @@ export default function App() {
             </div>
           </div>
           <div className="header-right">
+            <button
+              className="theme-toggle-btn"
+              onClick={() => setShowApiKeyModal(true)}
+              title="Groq API Key Settings"
+              style={{ width: 'auto', padding: '0 10px', fontSize: '0.76rem', display: 'flex', gap: '5px' }}
+            >
+              🔑 <span>API Key</span>
+            </button>
             <div className="status-chip">
               <span className="status-dot"></span>
               <span>Groq Powered</span>
@@ -556,6 +566,102 @@ export default function App() {
           </section>
         </main>
       </div>
+
+      {/* API Key Manager Modal */}
+      {showApiKeyModal && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0, 0, 0, 0.75)',
+          backdropFilter: 'blur(8px)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }}>
+          <div style={{
+            background: 'var(--bg-surface-elevated)',
+            border: '1px solid var(--border-glass-bright)',
+            borderRadius: '20px',
+            padding: '24px',
+            maxWidth: '480px',
+            width: '100%',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.1rem', color: 'var(--text-primary)' }}>
+                🔑 Groq API Key Settings
+              </h3>
+              <button
+                onClick={() => setShowApiKeyModal(false)}
+                style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '1.2rem' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '14px', lineHeight: 1.5 }}>
+              Paste your Groq API Key below to enable ultra-fast direct LLM guidance right in your browser. If your free tokens run out, simply paste a new key here anytime.
+            </p>
+
+            <input
+              type="password"
+              value={customApiKey}
+              onChange={(e) => setCustomApiKey(e.target.value)}
+              placeholder="gsk_..."
+              style={{
+                width: '100%',
+                padding: '10px 14px',
+                borderRadius: '12px',
+                border: '1px solid var(--border-glass-bright)',
+                background: 'var(--bg-input)',
+                color: '#fff',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.85rem',
+                outline: 'none',
+                marginBottom: '16px'
+              }}
+            />
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button
+                onClick={() => setShowApiKeyModal(false)}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid var(--border-glass)',
+                  color: 'var(--text-primary)',
+                  padding: '8px 16px',
+                  borderRadius: '10px',
+                  cursor: 'pointer',
+                  fontSize: '0.82rem'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  localStorage.setItem('shadow_groq_key', customApiKey.trim());
+                  setShowApiKeyModal(false);
+                  alert('Groq API Key saved successfully!');
+                }}
+                style={{
+                  background: 'var(--accent-gradient)',
+                  border: 'none',
+                  color: '#fff',
+                  padding: '8px 18px',
+                  borderRadius: '10px',
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                  fontSize: '0.82rem'
+                }}
+              >
+                Save Key
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
