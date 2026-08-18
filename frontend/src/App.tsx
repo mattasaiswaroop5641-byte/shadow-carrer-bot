@@ -1,5 +1,6 @@
 import { FormEvent, useMemo, useRef, useState, useEffect } from 'react';
 import { sendChatMessage } from './api';
+import { runClientSideCareerEngine } from './lib/careerEngine';
 import type { CareerGraph, CareerRecommendation, ChatMessage, UserProfile } from './types';
 
 // Interactive Graph Component
@@ -253,13 +254,19 @@ export default function App() {
         setGraph(res.graph);
       }
     } catch (err) {
-      const errorMsg: ChatMessage = {
-        id: `err-${Date.now()}`,
+      console.warn('Network issue, falling back to local intelligence', err);
+      const fallback = runClientSideCareerEngine(trimmed, userProfile);
+      const aiMsg: ChatMessage = {
+        id: `ai-${Date.now()}`,
         sender: 'assistant',
-        content: "⚠️ *Unable to reach backend API. Make sure the Python backend is running on port 3001.*",
+        content: fallback.answer,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
-      setMessages(prev => [...prev, errorMsg]);
+      setMessages(prev => [...prev, aiMsg]);
+      if (fallback.user_profile) setUserProfile(fallback.user_profile);
+      if (fallback.recommendations) setRecommendations(fallback.recommendations);
+      if (fallback.what_to_learn_next) setWhatToLearn(fallback.what_to_learn_next);
+      if (fallback.graph) setGraph(fallback.graph);
     } finally {
       setLoading(false);
     }
