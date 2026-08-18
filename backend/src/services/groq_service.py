@@ -3,11 +3,11 @@ from src.schemas import CareerRecommendation, ChatRequest, UserProfile
 import re
 
 CANDIDATE_MODELS = [
-    settings.groq_model,
+    "groq/compound-mini",
     "openai/gpt-oss-120b",
     "openai/gpt-oss-20b",
+    "groq/compound",
     "qwen/qwen3.6-27b",
-    "groq/compound-mini"
 ]
 
 
@@ -65,11 +65,11 @@ def generate_groq_reply(
                         {"role": "user", "content": "\n".join(profile_summary) + "\n\nConversation History:\n" + ("\n".join(history_lines) if history_lines else "None")},
                     ],
                     temperature=0.35,
-                    max_tokens=650,
+                    max_tokens=750,
                 )
                 content = completion.choices[0].message.content
-                if content:
-                    return content
+                if content and len(content.strip()) > 10:
+                    return content.strip()
             except Exception:
                 continue
 
