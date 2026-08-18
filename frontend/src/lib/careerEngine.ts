@@ -4,7 +4,7 @@ export const CAREER_MAP = [
   {
     name: 'Full Stack Developer',
     category: 'Software Engineering',
-    aliases: ['full stack', 'fullstack', 'web developer', 'full stack dev'],
+    aliases: ['full stack', 'fullstack', 'web developer', 'full stack dev', 'full stack developer', 'web development'],
     skills: ['HTML', 'CSS', 'JavaScript', 'TypeScript', 'React', 'Node.js', 'Python', 'SQL', 'Git', 'REST APIs', 'Docker'],
     qualifications: ['any degree', 'bsc', 'bca', 'mca', 'btech', 'be', 'diploma'],
     roadmap: [
@@ -43,7 +43,7 @@ export const CAREER_MAP = [
   {
     name: 'QA / Automation Tester',
     category: 'Quality Assurance',
-    aliases: ['qa', 'tester', 'testing', 'software tester', 'automation tester', 'quality assurance'],
+    aliases: ['qa', 'tester', 'testing', 'software tester', 'automation tester', 'quality assurance', 'software testing'],
     skills: ['Manual Testing', 'Test Cases', 'Bug Reporting', 'Selenium', 'Playwright', 'Python', 'Java', 'API Testing', 'Postman', 'SQL'],
     qualifications: ['any degree', 'bsc', 'bca', 'mca', 'btech', 'be', 'diploma'],
     roadmap: [
@@ -56,7 +56,7 @@ export const CAREER_MAP = [
   {
     name: 'Data Analyst',
     category: 'Data & Analytics',
-    aliases: ['data analyst', 'analytics', 'business data analyst', 'bi analyst'],
+    aliases: ['data analyst', 'analytics', 'business data analyst', 'bi analyst', 'data analytics'],
     skills: ['Excel', 'SQL', 'Python', 'Statistics', 'Power BI', 'Tableau', 'Pandas', 'Data Cleaning'],
     qualifications: ['any degree', 'bsc', 'bca', 'mca', 'bcom', 'btech', 'mba', 'be'],
     roadmap: [
@@ -124,7 +124,7 @@ export function runClientSideCareerEngine(
   message: string,
   existingProfile: UserProfile
 ): ChatResponse {
-  const msgLower = message.toLowerCase();
+  const msgLower = ' ' + message.toLowerCase() + ' ';
 
   const profile: UserProfile = {
     qualification: existingProfile.qualification || null,
@@ -134,13 +134,13 @@ export function runClientSideCareerEngine(
     interests: [...(existingProfile.interests || [])]
   };
 
-  // 1. Extract qualification
-  const qualMatch = msgLower.match(/\b(mca|bca|b\.?\s*tech|bsc|msc|mba|bcom|bba|diploma)\b/);
+  // 1. Extract qualification with clean word boundaries
+  const qualMatch = msgLower.match(/(^|[^a-z0-9])(mca|bca|b\.?\s*tech|bsc|msc|mba|bcom|bba|diploma)([^a-z0-9]|$)/i);
   if (qualMatch) {
-    profile.qualification = qualMatch[1].toUpperCase().replace('.', '').replace(' ', '');
+    profile.qualification = qualMatch[2].toUpperCase().replace(/\./g, '').replace(/\s+/g, '');
   }
 
-  // 2. Extract skills
+  // 2. Extract skills using boundary matching
   const skillKeywords: Record<string, string[]> = {
     'Python': ['python', 'py', 'python3'],
     'Java': ['java', 'core java'],
@@ -162,7 +162,7 @@ export function runClientSideCareerEngine(
   const detectedSkills = new Set(profile.skills);
   for (const [canonical, aliases] of Object.entries(skillKeywords)) {
     for (const alias of aliases) {
-      if (new RegExp(`\\b${alias}\\b`, 'i').test(msgLower)) {
+      if (new RegExp('(^|[^a-z0-9])' + alias + '([^a-z0-9]|$)', 'i').test(msgLower)) {
         detectedSkills.add(canonical);
         break;
       }
@@ -173,7 +173,7 @@ export function runClientSideCareerEngine(
   // 3. Extract Target Role
   for (const career of CAREER_MAP) {
     for (const alias of career.aliases) {
-      if (new RegExp(`\\b${alias}\\b`, 'i').test(msgLower)) {
+      if (new RegExp('(^|[^a-z0-9])' + alias + '([^a-z0-9]|$)', 'i').test(msgLower)) {
         profile.target_career = career.name;
         profile.domain = career.name;
         break;
@@ -239,13 +239,13 @@ export function runClientSideCareerEngine(
   if (profile.target_career && profile.skills.length > 0) {
     answer = `### 🎯 Target Career Path: ${profile.target_career}\n\n` +
       `✅ **Your Existing Strengths:** *${profile.skills.join(', ')}*\n` +
-      `Having strong programming foundations in ${profile.skills.join(' & ')} gives you a huge head start.\n\n` +
+      `Having strong programming foundations in ${profile.skills.join(' & ')} gives you a huge head start for ${profile.target_career}.\n\n` +
       `### 📚 Exact Skills to Learn Next:\n` +
       whatToLearn.map(s => `- **${s}**`).join('\n') + '\n\n' +
       `### 💡 Recommended 3-Step Strategy:\n` +
       `1. **Core Frameworks**: Deep dive into modern APIs, state management & databases.\n` +
       `2. **Production Architecture**: Implement authentication, containerization with Docker, and CI/CD pipelines.\n` +
-      `3. **Proof-of-Work Portfolio**: Build 2 end-to-end full-stack projects on GitHub.`;
+      `3. **Proof-of-Work Portfolio**: Build 2 end-to-end projects on GitHub to showcase to hiring managers.`;
   } else if (profile.qualification && !profile.target_career && profile.skills.length === 0) {
     answer = `### 🎓 Great! With a **${profile.qualification}** degree, here are your highest-growth tech paths:\n\n` +
       `1. **Full Stack / Backend Developer** (High demand)\n` +
