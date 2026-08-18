@@ -1,0 +1,11 @@
+{
+  "name": "ai-chatbot-workspace",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "npm run dev:clean && npm run dev:frontend",
+    "dev:clean": "powershell -NoProfile -Command \"$processIds = @(3000) | ForEach-Object { Get-NetTCPConnection -LocalPort $_ -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique } | Where-Object { $_ }; foreach ($processId in $processIds) { Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue }\"",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "cd backend && .\\.venv\\Scripts\\python -m uvicorn src.main:app --host 127.0.0.1 --port 3001"
+  }
+}
